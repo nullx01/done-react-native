@@ -3,9 +3,10 @@ import {ScrollView, StyleSheet, View} from 'react-native';
 import {TextInput, FAB, HelperText} from 'react-native-paper';
 import PhotoInput from '../components/PhotoInput';
 import DateInput from '../components/DateInput';
-import {useStorage, updateTask} from '../storage';
+import {useStorage, createTask, updateTask} from '../storage';
 
 const EditTaskScreen = ({navigation, route, initialEdit, backOnSave}) => {
+  const listId = route.params.listId;
   const task = route?.params?.task ? route.params.task : {};
 
   const [description, setDescription] = useState(task.description);
@@ -19,7 +20,13 @@ const EditTaskScreen = ({navigation, route, initialEdit, backOnSave}) => {
 
   const saveTask = () => {
     setEdit(false);
-    dispatch(updateTask({id: task.id, description, dueDate, picture}));
+    if (task.id) {
+      dispatch(
+        updateTask(listId, {id: task.id, description, dueDate, picture}),
+      );
+    } else {
+      dispatch(createTask(listId, {description, dueDate, picture}));
+    }
     if (backOnSave) {
       navigation.goBack();
     }

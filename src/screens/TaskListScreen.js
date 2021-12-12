@@ -12,9 +12,10 @@ const TaskListScreen = ({navigation, searchString, route}) => {
   const list = storage.lists.find(element => element.id === listId);
   const tasks = list && list.tasks ? list.tasks : [];
 
-  const onCreateTask = task => navigation.navigate('TaskCreation', {task});
-  const onOpenTask = task => navigation.navigate('TaskDetails', {task});
-  const onRemoveTask = task => dispatch(removeTask(task.id));
+  const onCreateTask = task =>
+    navigation.navigate('TaskCreation', {listId, task});
+  const onOpenTask = task => navigation.navigate('TaskDetails', {listId, task});
+  const onRemoveTask = task => dispatch(removeTask(listId, task.id));
 
   return storage.tasksLoaded ? (
     <TaskList

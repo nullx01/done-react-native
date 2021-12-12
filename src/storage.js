@@ -91,7 +91,7 @@ const defaultTasks = [
   },
 ];
 
-const initialState = {lists: [], tasks: [], tasksLoaded: false};
+const initialState = {lists: [], tasksLoaded: false};
 
 const tasksReducer = (state, action) => {
   const trimTask = task => ({
@@ -105,38 +105,59 @@ const tasksReducer = (state, action) => {
   });
 
   switch (action.type) {
-    case 'add-task':
-      console.debug('add-task');
+    case 'create-task':
+      console.debug('create-task');
       return {
         ...state,
-        tasks: [...state.tasks, {...trimTask(action.task), id: uuid.v4()}],
+        lists: state.lists.map(list => {
+          if (list.id === action.listId) {
+            return {
+              ...list,
+              tasks: [...list.tasks, {...trimTask(action.task), id: uuid.v4()}],
+            };
+          } else {
+            return list;
+          }
+        }),
       };
 
     case 'update-task':
-      if (action.task.id) {
-        return {
-          ...state,
-          tasks: state.tasks.map(item => {
-            return item.id === action.task.id ? trimTask(action.task) : item;
-          }),
-        };
-      } else {
-        return {
-          ...state,
-          tasks: [...state.tasks, {...trimTask(action.task), id: uuid.v4()}],
-        };
-      }
+      console.debug('update-task');
+      return {
+        ...state,
+        lists: state.lists.map(list => {
+          if (list.id === action.listId) {
+            return {
+              ...list,
+              tasks: list.tasks.map(task => {
+                return task.id === action.task.id
+                  ? trimTask(action.task)
+                  : task;
+              }),
+            };
+          } else {
+            return list;
+          }
+        }),
+      };
 
     case 'remove-task':
-      console.debug('remove-task id=' + action.id);
-      const index = state.tasks.findIndex(task => task.id === action.id);
-      if (index) {
-        const tasksCopy = [...state.tasks];
-        tasksCopy.splice(index, 1);
-        return {...state, tasks: tasksCopy};
-      } else {
-        return state;
-      }
+      console.debug(
+        'remove-task listId=' + action.listId + ' taskId=' + action.taskId,
+      );
+      return {
+        ...state,
+        lists: state.lists.map(list => {
+          if (list.id === action.listId) {
+            const index = list.tasks.findIndex(t => t.id === action.taskId);
+            const tasksCopy = [...list.tasks];
+            tasksCopy.splice(index, 1);
+            return {...list, tasks: tasksCopy};
+          } else {
+            return list;
+          }
+        }),
+      };
 
     case 'init-tasks':
       console.debug('init-tasks');
@@ -254,12 +275,12 @@ export const Provider = ({children}) => {
 
 export const useStorage = () => useContext(StorageContext);
 
-export const addTask = task => {
-  return {type: 'add-task', task};
+export const createTask = (listId, task) => {
+  return {type: 'create-task', listId, task};
 };
 
-export const removeTask = id => {
-  return {type: 'remove-task', id};
+export const removeTask = (listId, taskId) => {
+  return {type: 'remove-task', listId, taskId};
 };
 
 export const updateList = list => {
@@ -270,6 +291,6 @@ export const resetData = () => {
   return {type: 'reset-data'};
 };
 
-export const updateTask = task => {
-  return {type: 'update-task', task};
+export const updateTask = (listId, task) => {
+  return {type: 'update-task', listId, task};
 };
